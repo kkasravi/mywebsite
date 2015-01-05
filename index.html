@@ -1,50 +1,315 @@
-<html><body>
-<style type='text/css'>
-    svg {
-        overflow: hidden;
+<!doctype html>
+<html>
+<head>
+  <title>Network | DataSet</title>
+
+  <style type="text/css">
+    html, body {
+      font: 11pt arial;
     }
 
-    .node rect {
-        stroke: #333;
-        stroke-width: 1.5px;
-        fill: #fff;
+    h1 {
+      font-size: 150%;
+      margin: 5px 0;
     }
 
-    .edgeLabel rect {
-        fill: #fff;
+    h2 {
+      font-size: 100%;
+      margin: 5px 0;
     }
 
-    .edgePath {
-        stroke: #333;
-        stroke-width: 1.5px;
-        fill: none;
+    table.view {
+      width: 100%;
     }
-</style>
-<script type='text/javascript' src="http://d3js.org/d3.v3.js"></script>
-<script type='text/javascript' src="http://cpettitt.github.io/project/dagre-d3/v0.1.5/dagre-d3.min.js"></script>
-<script type='text/javascript' src="http://cpettitt.github.io/project/graphlib-dot/v0.4.10/graphlib-dot.min.js"></script>
-<script type='text/javascript'>
-    window.onload=function(){
-        // Parse the DOT syntax into a graphlib object.
-        var g = graphlibDot.parse(
-            'digraph {\n' +
-            '    a -> b;\n' +
-            '    }'
-        )
 
-        // Render the graphlib object using d3.
-        var renderer = new dagreD3.Renderer();
-        renderer.run(g, d3.select("svg g"));
-
-
-        // Optional - resize the SVG element based on the contents.
-        var svg=document.querySelector('#graphContainer');
-        var bbox=svg.getBBox();
-        svg.style.width=bbox.width + 40.0 + "px";
-        svg.style.height=bbox.height + 40.0 + "px";
+    table td {
+      vertical-align: top;
     }
-</script>
-<svg id="graphContainer">
-<g/>
-</svg>
-</body></html>
+
+    table table {
+      background-color: #f5f5f5;
+      border: 1px solid #e5e5e5;
+    }
+
+    table table td {
+      vertical-align: middle;
+    }
+
+    input[type=text], pre {
+      border: 1px solid lightgray;
+    }
+
+    pre {
+      margin: 0;
+      padding: 5px;
+      font-size: 10pt;
+    }
+
+    #network {
+      width: 100%;
+      height: 400px;
+      border: 1px solid lightgray;
+    }
+  </style>
+
+  <script src="http://ajax.googleapis.com/ajax/libs/jquery/1.10.1/jquery.min.js"></script>
+  <script type="text/javascript" src="../../../dist/vis.js"></script>
+  <link href="../../../dist/vis.css" rel="stylesheet" type="text/css" />
+
+  <script type="text/javascript">
+    var nodes, edges, network;
+
+    // convenience method to stringify a JSON object
+    function toJSON (obj) {
+      return JSON.stringify(obj, null, 4);
+    }
+
+    $(window).load(function () {
+      // attach actions to the node buttons
+      $('#node-add').click(function () {
+        try {
+          nodes.add({
+            id: $('#node-id').val(),
+            label: $('#node-label').val()
+          });
+        }
+        catch (err) {
+          alert(err);
+        }
+      });
+      $('#node-update').click(function () {
+        try {
+          nodes.update({
+            id: $('#node-id').val(),
+            label: $('#node-label').val()
+          });
+        }
+        catch (err) {
+          alert(err);
+        }
+      });
+      $('#node-remove').click(function () {
+        try {
+          var id = $('#node-id').val();
+          nodes.remove(id);
+        }
+        catch (err) {
+          alert(err);
+        }
+      });
+
+      // attach actions to the edge buttons
+      $('#edge-add').click(function () {
+        try {
+          edges.add({
+            id: $('#edge-id').val(),
+            from: $('#edge-from').val(),
+            to: $('#edge-to').val()
+          });
+        }
+        catch (err) {
+          alert(err);
+        }
+      });
+      $('#edge-update').click(function () {
+        try {
+          edges.update({
+            id: $('#edge-id').val(),
+            from: $('#edge-from').val(),
+            to: $('#edge-to').val()
+          });
+        }
+        catch (err) {
+          alert(err);
+        }
+      });
+      $('#edge-remove').click(function () {
+        try {
+          var id = $('#edge-id').val();
+          edges.remove(id);
+        }
+        catch (err) {
+          alert(err);
+        }
+      });
+
+      // create an array with nodes
+      nodes = new vis.DataSet();
+      nodes.subscribe('*', function () {
+        $('#nodes').html(toJSON(nodes.get()));
+      });/*
+      nodes.add([
+        {id: '1', label: 'Node 1'},
+        {id: '2', label: 'Node 2'},
+        {id: '3', label: 'Node 3'},
+        {id: '4', label: 'Node 4'},
+        {id: '5', label: 'Node 5'}
+      ]);*/
+
+      // create an array with edges
+      edges = new vis.DataSet();
+      edges.subscribe('*', function () {
+        $('#edges').html(toJSON(edges.get()));
+      });/*
+      edges.add([
+        {id: '1', from: '1', to: '2', label: 'a'},
+        {id: '2', from: '1', to: '3', label: 'b'},
+        {id: '3', from: '2', to: '4', label: 'c'},
+        {id: '4', from: '2', to: '5', label: 'd'}
+      ]);*/
+
+      // create a network
+      var container = $('#network').get(0);
+      var data = {
+        nodes: nodes,
+        edges: edges
+      };
+      var options = {
+stabilize:true
+//        clustering: true
+      };
+//      network = new vis.Network(container, data, options);
+var NODE_COUNT=2000;
+for (var i=1; i<=NODE_COUNT; i++) {
+  nodes.add({id: i, label: 'Nd' + i});
+}
+var EDGE_COUNT=100;
+for (var i=0; i<EDGE_COUNT/10; i++) {
+  var n = i*10;
+  edges.add([
+    {id: n+1, from: n+1, to: n+2, label: 'a'},
+    {id: n+2, from: n+1, to: n+3, label: 'b'},
+    {id: n+3, from: n+2, to: n+4, label: 'c'},
+    {id: n+4, from: n+2, to: n+5, label: 'd'},
+    {id: n+5, from: n+4, to: n+5, label: 'd'},
+    {id: n+6, from: n+4, to: n+3, label: 'd'},
+    {id: n+7, from: n+5, to: n+3, label: 'd'},
+    {id: n+8, from: n+5, to: n+4, label: 'd'},
+    {id: n+9, from: n+7, to: n+5, label: 'd'},
+    {id: n+10, from: n+7, to: n+11, label: 'd'},
+  ]);
+}
+network = new vis.Network(container, data, options);
+function r(l) {
+  return Math.floor(Math.random()*Math.exp(l));
+}
+var t = null;
+function a() {
+  for (var i=1; i<= EDGE_COUNT; i++) {
+    edges.update({
+      id: i,
+      label: r(4)+"mbps"
+    });
+  }
+  for (var i=1; i<= NODE_COUNT; i++) {
+    nodes.update({
+      id: i,
+      label: "N" +i +"_"+ r(3)
+    });
+  }
+  clearTimeout(t);
+  t = setTimeout(a, 1000);
+}
+//a();
+});
+  </script>
+</head>
+
+<body>
+
+<p>
+  This example demonstrates dynamically adding, updating and removing nodes
+  and edges using a DataSet.
+</p>
+<div style="visibility:hidden;height:0">
+<h1>Adjust</h1>
+<table>
+  <tr>
+    <td>
+      <h2>Node</h2>
+      <table>
+        <tr>
+          <td></td>
+          <td><label for="node-id">Id</label></td>
+          <td><input id="node-id" type="text" value="6"></td>
+        </tr>
+        <tr>
+          <td></td>
+          <td><label for="node-label">Label</label></td>
+          <td><input id="node-label" type="text" value="Node 6"></td>
+        </tr>
+        <tr>
+          <td></td>
+          <td>Action</td>
+          <td>
+            <button id="node-add">Add</button>
+            <button id="node-update">Update</button>
+            <button id="node-remove">Remove</button>
+          </td>
+        </tr>
+      </table>
+    </td>
+    <td>
+      <h2>Edge</h2>
+      <table>
+        <tr>
+          <td></td>
+          <td><label for="edge-id">Id</label></td>
+          <td><input id="edge-id" type="text" value="5"></td>
+        </tr>
+        <tr>
+          <td></td>
+          <td><label for="edge-from">From</label></td>
+          <td><input id="edge-from" type="text" value="3"></td>
+        </tr>
+        <tr>
+          <td></td>
+          <td><label for="edge-to">To</label></td>
+          <td><input id="edge-to" type="text" value="4"></td>
+        </tr>
+        <tr>
+          <td></td>
+          <td>Action</td>
+          <td>
+            <button id="edge-add">Add</button>
+            <button id="edge-update">Update</button>
+            <button id="edge-remove">Remove</button>
+          </td>
+        </tr>
+      </table>
+    </td>
+  </tr>
+
+</table>
+
+<h1>View</h1>
+<table class="view">
+  <colgroup>
+    <col width="25%">
+    <col width="25%">
+    <col width="50%">
+  </colgroup>
+  <tr>
+    <td>
+      <h2>Nodes</h2>
+      <pre id="nodes"></pre>
+    </td>
+
+    <td>
+      <h2>Edges</h2>
+      <pre id="edges"></pre>
+    </td>
+
+    <td>
+      <h2>Network</h2>
+      <div id="network2"></div>
+    </td>
+  </tr>
+</table>
+</div>
+
+
+      <h2>Network</h2>
+      <div id="network"></div>
+</body>
+</html>
