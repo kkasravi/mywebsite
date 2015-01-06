@@ -1,7 +1,7 @@
 mywebsite
 =========
 
-Web site that shows how to use gh-pages
+Web site that shows how to use gh-pages and is published at [http://kkasravi.github.io/mywebsite]( http://kkasravi.github.io/mywebsite).
 
 1. Click on Settings
 2. Click on Automatic Page Generator
